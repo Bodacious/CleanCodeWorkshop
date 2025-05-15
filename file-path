@@ -1,0 +1,21 @@
+---
+5-product:
+  id: 5
+  sku: ''
+  name: ''
+  description: ''
+  price_amount: 0.0
+  price_currency: USD
+  tax_amount: 0.0
+  tax_currency: USD
+  stock: 0
+6-product:
+  id: 6
+  sku: ''
+  name: ''
+  description: ''
+  price_amount: 123.46
+  price_currency: USD
+  tax_amount: 78.9
+  tax_currency: USD
+  stock: 0

@@ -1,44 +1,51 @@
 ---
 1-product:
   id: 1
-  sku: '123'
-  name: "Apple iPhone 14"
-  description: "Latest model of the iPhone series with improved camera and performance."
-  price_amount: 999.99
+  sku: ''
+  name: Product A
+  description: ''
+  price_amount:
   price_currency: USD
-  tax_amount: 89.99
+  tax_amount:
   tax_currency: USD
-  stock: 25
-
+  stock: 0
+5-product:
+  id: 5
+  sku: ''
+  name: ''
+  description: ''
+  price_amount:
+  price_currency: USD
+  tax_amount:
+  tax_currency: USD
+  stock: 0
 2-product:
   id: 2
-  sku: 'fbr45'
-  name: "Samsung Galaxy S23"
-  description: "Flagship Android phone with high-resolution display and powerful processor."
-  price_amount: 849.99
+  sku: ''
+  name: ''
+  description: ''
+  price_amount: 10.0
   price_currency: USD
-  tax_amount: 76.49
+  tax_amount:
   tax_currency: USD
-  stock: 30
-
-3-product:
-  id: 3
-  sku: '000'
-  name: "Generic Accessory"
-  description: "Basic phone accessory, compatible with most smartphones."
-  price_amount: 9.99
+  stock: 0
+6-product:
+  id: 6
+  sku: ''
+  name: ''
+  description: ''
+  price_amount: 123.46
   price_currency: USD
-  tax_amount: 0.99
+  tax_amount: 78.9
   tax_currency: USD
-  stock: 100
-
-4-product:
-  id: 4
-  sku: '046'
-  name: "Wireless Earbuds"
-  description: "Noise-cancelling wireless earbuds with long battery life."
-  price_amount: 129.99
+  stock: 0
+7-product:
+  id: 7
+  sku: ''
+  name: ''
+  description: ''
+  price_amount: 123.46
   price_currency: USD
-  tax_amount: 11.69
+  tax_amount: 78.9
   tax_currency: USD
-  stock: 50
+  stock: 0

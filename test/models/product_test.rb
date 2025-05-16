@@ -1,9 +1,9 @@
-require 'test_helper'
+require "test_helper"
 
 class ProductTest < ActiveSupport::TestCase
   test ".database_file= sets the database file" do
-    Product.database_filepath = 'file-path'
-    assert_equal 'file-path', Product.database_filepath
+    Product.database_filepath = "file-path"
+    assert_equal "file-path", Product.database_filepath
   end
 
   test ".all returns all products" do

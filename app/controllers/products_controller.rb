@@ -1,6 +1,5 @@
 class ProductsController < ApplicationController
-  before_action :set_product, only: %i[ show update destroy ]
-
+  rescue_from Product::RecordNotFound, with: :record_not_found
   # GET /products
   def index
     @products = Product.all
@@ -10,13 +9,13 @@ class ProductsController < ApplicationController
 
   # GET /products/1
   def show
+    @product = Product.find(params[:id])
     render json: @product
   end
 
   # POST /products
   def create
     @product = Product.new(product_params)
-
     if @product.save
       render json: @product, status: :created, location: @product
     else
@@ -26,6 +25,7 @@ class ProductsController < ApplicationController
 
   # PATCH/PUT /products/1
   def update
+    @product = Product.find(params[:id])
     if @product.update(product_params)
       render json: @product
     else
@@ -35,17 +35,22 @@ class ProductsController < ApplicationController
 
   # DELETE /products/1
   def destroy
+    @product = Product.find(params[:id])
     @product.destroy!
+
+    head :no_content
   end
 
-  private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_product
-      @product = Product.find(params.expect(:id))
-    end
+  protected
 
-    # Only allow a list of trusted parameters through.
-    def product_params
-      params.expect(product: [ :name, :sku, :description, :price_amount, :price_currency, :tax_amount, :tax_currency ])
-    end
+  # Use callbacks to share common setup or constraints between actions.
+
+  # Only allow a list of trusted parameters through.
+  def product_params
+    params.expect(product: [ :name, :sku, :description, :price_amount, :price_currency, :tax_amount, :tax_currency ])
+  end
+
+  def record_not_found
+    render json: { errors: [ "Record not found" ] }, status: :not_found
+  end
 end

@@ -5,12 +5,19 @@ class Product
   ##
   # YAML Persistence. Matches ActiveRecord's API as much as possible
 
+  class RecordInvalid < StandardError
+  end
+
+  class RecordNotFound < StandardError
+  end
+
   class << self
     require "yaml/store"
     require "bigdecimal"
 
     # Register BigDecimal as a safe class for YAML deserialization
-    DEFAULT_FILE_PATH = Rails.root.join("db", "products.yml")
+    DEFAULT_FILE_PATH = Rails.root.join("db", "#{Rails.env}.products.yml")
+
 
     def database_filepath=(filepath)
       @database_filepath = filepath
@@ -31,7 +38,7 @@ class Product
     end
 
     def find(id)
-      where("id" => id).first
+      where("id" => id.to_i).first || raise(RecordNotFound, "Cannot find product with id=#{id}")
     end
 
     def where(filters = {})
@@ -40,10 +47,23 @@ class Product
       end
     end
 
-    def save(product)
+    def count
+      all.size
+    end
+
+    def save(product, changes = {})
+      return false unless product.valid?
+
       storage_key = storage_key_for_product(product)
       store_instance(read_only: false) do |store|
-        store[storage_key] = safe_storage_attributes(product.attributes)
+        store[storage_key] = safe_storage_attributes(changes)
+      end
+    end
+
+    def destroy!(product)
+      storage_key = storage_key_for_product(product)
+      store_instance(read_only: false) do |store|
+        store.delete(storage_key)
       end
     end
 
@@ -110,6 +130,7 @@ class Product
   ##
   # Attributes
 
+  include ActiveModel::Model
   include ActiveModel::Attributes
 
   attribute :id, :integer, default: nil
@@ -129,12 +150,28 @@ class Product
   attribute :stock, :integer, default: 0
 
   ##
-  # Persistence instance methods
+  # Validations
 
-  def initialize(attributes = {})
-    super()
-    set_attributes(attributes)
-  end
+  validates :name, presence: true
+
+  validates :sku, presence: true, format: /\w{4}\-\w\d{3}/i
+
+  validates :description, presence: true
+
+  validates :price_amount, presence: true, numericality: { greater_than: 0 }
+
+  validates :price_currency, presence: true, format: /[A-Z]{3}/
+
+  validates :price_amount, presence: true, numericality: { greater_than: 0 }
+
+  validates :tax_amount, presence: true, numericality: { greater_than: 0 }
+
+  validates :tax_currency, presence: true, format: /[A-Z]{3}/
+
+  validates :stock, presence: true, numericality: { greater_than: 0 }
+
+  ##
+  # Persistence instance methods
 
   def set_attributes(new_attributes = {})
     new_attributes.each_pair do |key, value|
@@ -142,9 +179,22 @@ class Product
     end
   end
 
-  def save
-    self.class.save(self)
+  def update(new_attributes)
+    self.class.save(self, new_attributes)
     true
+  end
+
+  def save
+    self.class.save(self, attributes)
+    true
+  end
+
+  def save!
+    save || raise(RecordInvalid)
+  end
+
+  def destroy!
+    self.class.destroy!(self)
   end
 
   def persisted?
@@ -160,5 +210,12 @@ class Product
 
   def tax
     Money.from_amount(tax_amount.to_f, tax_currency)
+  end
+
+  ##
+  # Representation
+
+  def as_json(*)
+    attributes
   end
 end

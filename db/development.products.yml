@@ -1,0 +1,71 @@
+---
+1-product:
+  id: 1
+  sku: PROD-001
+  name: Product B
+  description: Description for Product B
+  price_amount: 25.5
+  price_currency: USD
+  tax_amount: 2.55
+  tax_currency: USD
+  stock: 250
+2-product:
+  id: 2
+  sku: PROD-B002
+  name: Smartphone Stand
+  description: Adjustable smartphone holder for hands-free use.
+  price_amount: 10.0
+  price_currency: USD
+  tax_amount: 0.85
+  tax_currency: USD
+  stock: 250
+3-product:
+  id: 3
+  sku: PROD-C003
+  name: Portable Charger
+  description: Fast-charging power bank with 10000mAh capacity.
+  price_amount: 29.99
+  price_currency: USD
+  tax_amount: 2.7
+  tax_currency: USD
+  stock: 300
+4-product:
+  id: 4
+  sku: PROD-D004
+  name: Laptop Sleeve
+  description: Durable and water-resistant laptop cover for 15-inch devices.
+  price_amount: 25.5
+  price_currency: USD
+  tax_amount: 2.15
+  tax_currency: USD
+  stock: 180
+5-product:
+  id: 5
+  sku: PROD-E005
+  name: Wireless Mouse
+  description: Ergonomic mouse with optical precision and USB connectivity.
+  price_amount: 15.99
+  price_currency: USD
+  tax_amount: 1.4
+  tax_currency: USD
+  stock: 500
+6-product:
+  id: 6
+  sku: PROD-F006
+  name: Bluetooth Speaker
+  description: Compact speaker with rich bass and clear audio output.
+  price_amount: 123.46
+  price_currency: USD
+  tax_amount: 78.9
+  tax_currency: USD
+  stock: 75
+7-product:
+  id: 7
+  sku: PROD-G007
+  name: Smartwatch
+  description: Feature-rich smartwatch with heart rate monitoring and GPS.
+  price_amount: 199.99
+  price_currency: USD
+  tax_amount: 15.3
+  tax_currency: USD
+  stock: 40

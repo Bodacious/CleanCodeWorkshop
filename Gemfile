@@ -27,3 +27,9 @@ group :development, :test do
   gem "mocha", "~> 2.7"
 end
 
+group :sinatra do
+  gem "sinatra", "~> 4.1"
+  gem "sinatra-contrib", require: ['sinatra/base', 'sinatra/json', 'sinatra/namespace']
+  gem "sqlite3"
+  gem "json"
+end

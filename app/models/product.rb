@@ -1,46 +1,61 @@
+# An item for sale in our online store.
+#
+# Saved in YAML for now, because we can't afford a DB
+#
 class Product
-  # You forgot to create the database storage YAML file
-  class DatabaseNotDefined < StandardError;end
+  include ActiveModel::Model
+  include ActiveModel::Attributes
 
   ##
   # YAML Persistence. Matches ActiveRecord's API as much as possible
 
-  class RecordInvalid < StandardError
-  end
-
-  class RecordNotFound < StandardError
-  end
-
   class << self
     require "yaml/store"
-    require "bigdecimal"
 
-    # Register BigDecimal as a safe class for YAML deserialization
+    # Default database path.
     DEFAULT_FILE_PATH = Rails.root.join("db", "#{Rails.env}.products.yml")
 
-
+    # Set the filepath where the YAML data is stored
+    # @param [Pathname, String] filepath
+    # @return [Pathname]
     def database_filepath=(filepath)
-      @database_filepath = filepath
+      @database_filepath = Pathname.new(filepath)
     end
 
+    # The filepath where the YAML data is stored
+    # @return [Pathname]
     def database_filepath
       @database_filepath || DEFAULT_FILE_PATH
     end
 
+    # All of the products
+    # @return [Array<Product>]
     def all
       load_all
     end
 
+    # The maximum value of the given attribute name in the dataset
+    # @param [String, Symbol] attribute_name Name of the attribute to return max value for
+    # @return [String,Integer,Float]
     def max(attribute_name)
       load_all.select { |record| record.public_send(attribute_name).present? }
               .max { |a, b| a.public_send(attribute_name) <=> b.public_send(attribute_name) }
               .try(attribute_name)
     end
 
+    # You tried to fetch a record that doesn't exist
+    class Product::RecordNotFound < StandardError
+    end
+
+    # @param [Integer, String] id The ID of the product to find
+    # @return [Product]
+    # @raise [RecordNotFound]
     def find(id)
       where("id" => id.to_i).first || raise(RecordNotFound, "Cannot find product with id=#{id}")
     end
 
+    # @param [Hash] filters The SQL filters to apply to this query.
+    # @return [Array<Product>]
     def where(filters = {})
       load_all.filter do |product|
         product.attributes.with_indifferent_access.slice(*filters.keys) == filters.with_indifferent_access
@@ -69,7 +84,6 @@ class Product
 
     protected
 
-
     def store_instance(read_only: true, &block)
       ensure_db_exists!
 
@@ -80,6 +94,8 @@ class Product
       end
     end
 
+    # YAML::Store doesn't like it if we try to save data-types not in the permitted
+    # class list.
     SAFE_YAML_TYPES = [
       TrueClass,
       FalseClass,
@@ -92,15 +108,25 @@ class Product
     ].freeze
     private_constant :SAFE_YAML_TYPES
 
+    # Ensure we store data in YAML-safe types
+    # @param [Hash] attributes
+    # @return [Hash]
     def safe_storage_attributes(attributes)
       attributes.transform_values do |value|
         next(value) if SAFE_YAML_TYPES.include?(value.class)
 
         next(value.to_f) if value.is_a?(Numeric)
+
         value.to_s
       end
     end
 
+    # The key to save the product under in YAML. Saves as a dictionary, rather
+    # than a list, for faster lookup.
+    # (e.g. faster to find `product_hash["1-product"]`
+    # than `products_array.find { |item| item.id == "1-product"}`.
+    # Storage keys are ID first, so that they are faster to sort than if the ID
+    # came at the end of the String.
     def storage_key_for_product(product)
       product.id = generate_new_id_for_product! unless product.persisted?
       "#{product.id}-product"
@@ -122,16 +148,13 @@ class Product
       end
     end
 
+    # You forgot to create the database storage YAML file
+    class Product::DatabaseNotDefined < StandardError;end
+
     def ensure_db_exists!
       raise DatabaseNotDefined, "Please ensure #{database_filepath} exists" unless File.exist?(database_filepath)
     end
   end
-
-  ##
-  # Attributes
-
-  include ActiveModel::Model
-  include ActiveModel::Attributes
 
   attribute :id, :integer, default: nil
 
@@ -142,36 +165,34 @@ class Product
   attribute :description, :string, default: ""
 
   attribute :price_amount, :decimal, precision: 10, scale: 2, default: 0.0
-  attribute :price_currency, :string, default: "USD"
+
+  DEFAULT_ISO_CURRENCY = "USD"
+  attribute :price_currency, :string, default: DEFAULT_ISO_CURRENCY
 
   attribute :tax_amount, :decimal, precision: 10, scale: 2, default: 0.0
-  attribute :tax_currency, :string, default: "USD"
+  attribute :tax_currency, :string, default: DEFAULT_ISO_CURRENCY
 
   attribute :stock, :integer, default: 0
 
-  ##
-  # Validations
-
   validates :name, presence: true
 
-  validates :sku, presence: true, format: /\w{4}\-\w\d{3}/i
+  SKU_PATTERN = /\w{4}\-\w\d{3}/i
+  validates :sku, presence: true, format: SKU_PATTERN
 
   validates :description, presence: true
 
   validates :price_amount, presence: true, numericality: { greater_than: 0 }
 
-  validates :price_currency, presence: true, format: /[A-Z]{3}/
+  ISO_CURRENCY_PATTERN = /[A-Z]{3}/
+  validates :price_currency, presence: true, format: ISO_CURRENCY_PATTERN
 
   validates :price_amount, presence: true, numericality: { greater_than: 0 }
 
   validates :tax_amount, presence: true, numericality: { greater_than: 0 }
 
-  validates :tax_currency, presence: true, format: /[A-Z]{3}/
+  validates :tax_currency, presence: true, format: ISO_CURRENCY_PATTERN
 
   validates :stock, presence: true, numericality: { greater_than: 0 }
-
-  ##
-  # Persistence instance methods
 
   def set_attributes(new_attributes = {})
     new_attributes.each_pair do |key, value|
@@ -189,6 +210,10 @@ class Product
     true
   end
 
+
+  # You tried to save a record that wasn't valid
+  class Product::RecordInvalid < StandardError
+  end
   def save!
     save || raise(RecordInvalid)
   end
@@ -201,9 +226,6 @@ class Product
     id.present?
   end
 
-  ##
-  # Attributes
-
   def price
     Money.from_amount(price_amount.to_f, price_currency)
   end
@@ -211,9 +233,6 @@ class Product
   def tax
     Money.from_amount(tax_amount.to_f, tax_currency)
   end
-
-  ##
-  # Representation
 
   def as_json(*)
     attributes

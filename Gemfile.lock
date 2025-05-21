@@ -154,7 +154,7 @@ GEM
       prettyprint
     prettyprint (0.2.0)
     prism (1.4.0)
-    pstore (0.1.4)
+    pstore (0.2.0)
     psych (5.2.6)
       date
       stringio

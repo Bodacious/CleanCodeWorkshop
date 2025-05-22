@@ -15,8 +15,12 @@ class ProductTest < ActiveSupport::TestCase
   end
 
   test ".database_file= sets the database file" do
-    Product.database_filepath = "file-path"
-    assert_equal Pathname.new("file-path"), Product.database_filepath
+    path = "./tmp/file-path"
+    Product.database_filepath = path
+
+    assert_equal Pathname.new(path), Product.database_filepath
+
+    FileUtils.delete(path) if File.exist?(path)
   end
 
   test ".all returns all products" do

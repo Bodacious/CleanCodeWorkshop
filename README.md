@@ -1,24 +1,46 @@
-# README
+# Clean Code Workshop
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+This is an example repository used for a workshop that demonstrates core "Clean Code" principles using Ruby on Rails.
 
-Things you may want to cover:
+[![CI](https://github.com/Bodacious/CleanCodeWorkshop/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Bodacious/CleanCodeWorkshop/actions/workflows/ci.yml)
 
-* Ruby version
+## 📥 Downloading
 
-* System dependencies
+To clone the repository:
 
-* Configuration
+```bash
+git clone https://github.com/bodacious/cleancodeworkshop.git
+cd cleancodeworkshop
+```
 
-* Database creation
+## ⚙️ Setup
 
-* Database initialization
+Install dependencies and prepare the environment:
 
-* How to run the test suite
+```bash
+bin/setup
+```
 
-* Services (job queues, cache servers, search engines, etc.)
+## 🧪 Running the Test Suite
 
-* Deployment instructions
+To execute the full test suite:
 
-* ...
+```bash
+bundle exec rails test
+```
+
+## 🚀 Running the Main Application Server
+
+To start the Rails server with development tools:
+
+```bash
+bin/dev
+```
+
+## 🔌 Running the Third-Party Service
+
+A third-party mock service is included and can be started separately on port 9292:
+
+```bash
+bin/third-party-service
+```

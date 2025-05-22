@@ -3,8 +3,13 @@ require "test_helper"
 class ProductsControllerTest < ActionDispatch::IntegrationTest
   include FactoryBot::Syntax::Methods
 
-  setup :create_test_yaml_store
-  teardown :destroy_test_yaml_store
+  # Ensure each test is run with a fresh YAML file
+  def around
+    with_temp_db do |file|
+      Product.database_filepath = file.path
+      yield
+    end
+  end
 
   test "#index returns 200 success" do
     get products_url, as: :json

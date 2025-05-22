@@ -47,7 +47,16 @@ class ProductsController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def product_params
-    params.expect(product: [ :name, :sku, :description, :price_amount, :price_currency, :tax_amount, :tax_currency ])
+    params.expect(product: [
+      :name,
+      :sku,
+      :description,
+      :price_amount,
+      :price_currency,
+      :tax_amount,
+      :tax_currency,
+      :stock
+    ])
   end
 
   def record_not_found

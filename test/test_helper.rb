@@ -7,22 +7,25 @@ require "mocha/minitest"
 module ActiveSupport
   class TestCase
     include FactoryBot::Syntax::Methods
-    # Run tests in parallel with specified workers
-    # parallelize(workers: :number_of_processors)
 
-    # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
-    # fixtures :all
+    # Override `#run` to make it call `#around` on each test run
+    def run
+      around { super }
+    end
 
     protected
 
-    def test_yaml_store_path
-      Rails.root.join("db/#{Rails.env}.products.yml")
+    def with_temp_db(content = nil, &block)
+      Tempfile.open do |tempfile|
+        tempfile.write(content.to_s)
+        tempfile.rewind
+        block.call(tempfile)
+      end
     end
-    def create_test_yaml_store
-      FileUtils.touch(test_yaml_store_path)
+
+    def around
+      yield
     end
-    def destroy_test_yaml_store
-      FileUtils.rm(test_yaml_store_path)
-    end
+
   end
 end

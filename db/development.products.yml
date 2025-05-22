@@ -1,14 +1,4 @@
 ---
-1-product:
-  id: 1
-  sku: PROD-001
-  name: Product B
-  description: Description for Product B
-  price_amount: 25.5
-  price_currency: USD
-  tax_amount: 2.55
-  tax_currency: USD
-  stock: 250
 2-product:
   id: 2
   sku: PROD-B002
@@ -69,3 +59,23 @@
   tax_amount: 15.3
   tax_currency: USD
   stock: 40
+8-product:
+  id: 8
+  sku: PROD-Z999
+  name: USB-C Hub
+  description: Multiport adapter with HDMI, USB 3.0, and SD card slots.
+  price_amount: 34.99
+  price_currency: USD
+  tax_amount: 2.8
+  tax_currency: USD
+  stock: 120
+9-product:
+  id: 9
+  sku: PROD-111
+  name: USB-C Hub
+  description: Multiport adapter with HDMI, USB 3.0, and SD card slots. 2
+  price_amount: 34.99
+  price_currency: USD
+  tax_amount: 2.8
+  tax_currency: USD
+  stock: 150

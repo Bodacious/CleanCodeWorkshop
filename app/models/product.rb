@@ -39,8 +39,8 @@ class Product
     # @return [String,Integer,Float]
     def max(attribute_name)
       load_all.select { |record| record.public_send(attribute_name).present? }
-              .max { |a, b| a.public_send(attribute_name) <=> b.public_send(attribute_name) }
-              .try(attribute_name)
+              .map(&:"#{attribute_name}")
+              .max
     end
 
     # You tried to fetch a record that doesn't exist
@@ -58,7 +58,8 @@ class Product
     # @return [Array<Product>]
     def where(filters = {})
       load_all.filter do |product|
-        product.attributes.with_indifferent_access.slice(*filters.keys) == filters.with_indifferent_access
+        product.attributes.with_indifferent_access.slice(*filters.keys) ==
+          filters.with_indifferent_access
       end
     end
 
@@ -69,9 +70,11 @@ class Product
     def save(product, changes = {})
       return false unless product.valid?
 
+      product.attributes = changes
+
       storage_key = storage_key_for_product(product)
       store_instance(read_only: false) do |store|
-        store[storage_key] = safe_storage_attributes(changes)
+        store[storage_key] = safe_storage_attributes(product.attributes)
       end
     end
 
@@ -87,7 +90,7 @@ class Product
     def store_instance(read_only: true, &block)
       ensure_db_exists!
 
-      store = YAML::Store.new(database_filepath, true, symbolize_names: true)
+      store = YAML::Store.new(database_filepath.to_s, threadsafe = true)
 
       store.transaction(read_only) do
         block.call(store)
@@ -148,11 +151,11 @@ class Product
       end
     end
 
-    # You forgot to create the database storage YAML file
-    class Product::DatabaseNotDefined < StandardError;end
-
     def ensure_db_exists!
-      raise DatabaseNotDefined, "Please ensure #{database_filepath} exists" unless File.exist?(database_filepath)
+      return if File.exist?(database_filepath)
+
+      FileUtils.mkdir_p(File.dirname(database_filepath))
+      FileUtils.touch(File.dirname(database_filepath))
     end
   end
 
@@ -176,7 +179,7 @@ class Product
 
   validates :name, presence: true
 
-  SKU_PATTERN = /\w{4}\-\w\d{3}/i
+  SKU_PATTERN = /\w{4}\-\w?\d{3}/i
   validates :sku, presence: true, format: SKU_PATTERN
 
   validates :description, presence: true
@@ -201,13 +204,11 @@ class Product
   end
 
   def update(new_attributes)
-    self.class.save(self, new_attributes)
-    true
+    self.class.save(self, new_attributes.to_hash)
   end
 
   def save
     self.class.save(self, attributes)
-    true
   end
 
 

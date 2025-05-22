@@ -1,6 +1,19 @@
 require "test_helper"
 
 class ProductTest < ActiveSupport::TestCase
+  test "attribute defaults are set correctly" do
+    product = Product.new
+    assert_nil product.id
+    assert_equal "", product.sku
+    assert_equal "", product.name
+    assert_equal "", product.description
+    assert_equal "USD", product.price_currency
+    assert_equal "USD", product.tax_currency
+    assert_equal 0, product.stock
+    assert_equal 0.0, product.price_amount
+    assert_equal 0.0, product.tax_amount
+  end
+
   test ".database_file= sets the database file" do
     Product.database_filepath = "file-path"
     assert_equal Pathname.new("file-path"), Product.database_filepath
@@ -27,8 +40,10 @@ class ProductTest < ActiveSupport::TestCase
   test ".max returns the maximum value for a given attribute" do
     with_temp_db do |file|
       Product.database_filepath = file.path
-      Product.new(id: 1, price_amount: 5.0).save
-      Product.new(id: 2, price_amount: 10.0).save
+      build(:product, price_amount: 5.0).save
+      build(:product, price_amount: 10.0).save
+      build(:product, price_amount: 6.0).save
+
       assert_equal 10.0, Product.max(:price_amount)
     end
   end
@@ -36,10 +51,12 @@ class ProductTest < ActiveSupport::TestCase
   test ".find returns the product with the given id" do
     with_temp_db do |file|
       Product.database_filepath = file.path
-      product = Product.new(id: 1, name: "Product A")
+
+      product = build(:product, name: "Product A")
       product.save
-      found_product = Product.find(1)
-      assert_equal product.name, found_product.name
+
+      found_product = Product.find(product.id)
+      assert_equal "Product A", found_product.name
     end
   end
 
@@ -61,9 +78,9 @@ class ProductTest < ActiveSupport::TestCase
   end
 
   test "#save stores the product to the YAML file" do
-    product = Product.new(id: 1, name: "Product A")
-    assert product.save
-    loaded_product = Product.find(1)
+    product = build(:product, name: "Product A")
+    assert product.save!
+    loaded_product = Product.find(product.id)
     assert_equal "Product A", loaded_product.name
   end
 
@@ -123,12 +140,15 @@ class ProductTest < ActiveSupport::TestCase
   test ".save assigns a new ID for unpersisted products" do
     with_temp_db do |file|
       Product.database_filepath = file.path
-      product = Product.new(name: "Product B")
-      refute product.persisted?
+
+      product = build(:product, name: "Product B")
+      refute_predicate product, :persisted?
+
       Product.save(product)
-      assert product.persisted?
-      assert_equal 1, product.id
-      loaded_product = Product.find(1)
+      assert_predicate product, :persisted?
+      assert_predicate product, :valid?
+
+      loaded_product = Product.find(product.id)
       assert_equal "Product B", loaded_product.name
     end
   end
@@ -143,8 +163,9 @@ class ProductTest < ActiveSupport::TestCase
   test ".max ignores records with nil attributes" do
     with_temp_db do |file|
       Product.database_filepath = file.path
-      Product.new(id: 1, price_amount: nil).save
-      Product.new(id: 2, price_amount: 10.0).save
+
+      build(:product, price_amount: nil).save
+      build(:product, price_amount: 10.0).save
       assert_equal 10.0, Product.max(:price_amount)
     end
   end
@@ -152,7 +173,7 @@ class ProductTest < ActiveSupport::TestCase
   test ".find returns nil when ID is not found" do
     with_temp_db do |file|
       Product.database_filepath = file.path
-      assert_nil Product.find(999)
+      assert_raises(Product::RecordNotFound) { Product.find(999) }
     end
   end
 
@@ -187,21 +208,8 @@ class ProductTest < ActiveSupport::TestCase
     end
   end
 
-  test "attribute defaults are set correctly" do
-    product = Product.new
-    assert_nil product.id
-    assert_equal "", product.sku
-    assert_equal "", product.name
-    assert_equal "", product.description
-    assert_equal "USD", product.price_currency
-    assert_equal "USD", product.tax_currency
-    assert_equal 0, product.stock
-    assert_equal 0.0, product.price_amount
-    assert_equal 0.0, product.tax_amount
-  end
-
-  test "price_amount and tax_amount respect BigDecimal precision and scale" do
-    product = Product.new(price_amount: BigDecimal("123.456"), tax_amount: BigDecimal("78.901"))
+  test "#price_amount and #tax_amount respect BigDecimal precision and scale" do
+    product = build(:product, price_amount: BigDecimal("123.456"), tax_amount: BigDecimal("78.901"))
     product.save
     loaded_product = Product.find(product.id)
     assert_equal BigDecimal("123.46"), loaded_product.price_amount
@@ -219,16 +227,6 @@ class ProductTest < ActiveSupport::TestCase
       assert_raises(Psych::SyntaxError) do
         Product.all
       end
-    end
-  end
-
-  private
-
-  def with_temp_db(content = nil, &block)
-    Tempfile.open do |tempfile|
-      tempfile.write(content.to_s)
-      tempfile.rewind
-      block.call(tempfile)
     end
   end
 end

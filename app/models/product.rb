@@ -145,7 +145,7 @@ class Product
         store.keys.sort.map do |key|
           product_yaml = store[key]
           instance = new
-          instance.set_attributes(product_yaml)
+          instance.attributes = product_yaml
           instance
         end
       end
@@ -196,12 +196,6 @@ class Product
   validates :tax_currency, presence: true, format: ISO_CURRENCY_PATTERN
 
   validates :stock, presence: true, numericality: { greater_than: 0 }
-
-  def set_attributes(new_attributes = {})
-    new_attributes.each_pair do |key, value|
-      public_send("#{key}=", value)
-    end
-  end
 
   def update(new_attributes)
     self.class.save(self, new_attributes.to_hash)

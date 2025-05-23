@@ -20,7 +20,7 @@ class ProductTest < ActiveSupport::TestCase
 
     assert_equal Pathname.new(path), Product.database_filepath
 
-    FileUtils.delete(path) if File.exist?(path)
+    FileUtils.rm(path) if File.exist?(path)
   end
 
   test ".all returns all products" do
@@ -108,9 +108,9 @@ class ProductTest < ActiveSupport::TestCase
     assert_equal Money.from_amount(1.99, "USD"), product.tax
   end
 
-  test "#set_attributes sets the attributes correctly" do
+  test "#attributes= sets the attributes correctly" do
     product = Product.new
-    product.set_attributes(id: 1, name: "Product A", price_amount: 9.99)
+    product.attributes = { id: 1, name: "Product A", price_amount: 9.99 }
     assert_equal 1, product.id
     assert_equal "Product A", product.name
     assert_equal 9.99, product.price_amount
